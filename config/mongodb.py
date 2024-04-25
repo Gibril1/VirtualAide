@@ -24,6 +24,7 @@ async def connect_to_database():
     """
     
     try:
+        logging.info("########MongoDB instantiating....😁😁######")
         client = AsyncIOMotorClient(DATABASE_URL)
         await client.admin.command("ping")
 
@@ -34,7 +35,7 @@ async def connect_to_database():
         return client[DATABASE_NAME]
     except Exception as e:
         # Log connection error
-        logging.error(f"Error connecting to the database: {e}")
+        logging.error(f"Error connecting to the database: {e}🥲🥲🥲")
         return None
 
 async def close_database_connection():
