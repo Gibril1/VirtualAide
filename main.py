@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from config.chromadb import ChromaDb
 from config.mongodb import connect_to_database, close_database_connection
-from routes.chat_routes import router, chat_router
+from routes.chat_routes import mongo_router, chat_router, chroma_router
 # init app
 app = FastAPI()
 
@@ -10,8 +10,10 @@ chroma = ChromaDb()
 
 
 # register routes
-app.include_router(router)
+app.include_router(mongo_router)
+app.include_router(chroma_router)
 app.include_router(chat_router)
+
 
 
 # register events

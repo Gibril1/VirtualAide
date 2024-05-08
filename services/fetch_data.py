@@ -27,28 +27,26 @@ class MongoDBCrudService:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to find all records')
         
     def template_message_string(self, message, source, date, sender):
-        message = f"On {date}, {sender} sent  to his team via {source}, a message with content '{message}"
+        message = f"On {date}, {sender} sent  to his team via {source}, a message with content '{message}'"
 
         return message
     
-    def template_message_string_private(self, message, source, date, sender, receiver):
-        message = f"On {date}, {sender} sent a message with content '{message}' to {receiver} via {source}"
-
-        return message
+    
     
     async def add_records_to_database_group_messages(self, model):
         try:
             records = await self.find(model)
-            ids = [str(uuid.uuid4()) for _ in range(len(records['records']))]
+            length_of_records = len(records["records"])
+            ids = [str(uuid.uuid4()) for _ in range(length_of_records)]
             documents = []
 
             for record in records['records']:
-                message = self.template_message_string(
-                    message=record["message"],
-                    source=record["source"],
-                    date= record["date"],
-                    sender=record["sender"]
-                )
+                message_content = record["message"]
+                source = record["source"]
+                date = record["date"]
+                sender = record["sender"]
+
+                message = self.template_message_string(message_content, source, date, sender)
                 documents.append(message)
                 logging.info(f'Chroma Docs: {message}')
                 
@@ -59,6 +57,11 @@ class MongoDBCrudService:
         except Exception as e:
             logging.error(f'Failed to add records to chroma. {e}')
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to add all records')
+    
+    def template_message_string_private(self, message, source, date, sender, receiver):
+        message = f"On {date}, {sender} sent a message with content '{message}' to {receiver} via {source}"
+
+        return message
     
     async def add_records_to_database_private_messages(self, model):
         try:

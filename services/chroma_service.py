@@ -35,7 +35,7 @@ class ChromaDBCRUDService:
         try:
             collection_names = self.get_all_collections()
             for name in collection_names:
-                self.client.delete_collection(name)
+                self.client.delete_collection(name.name)
             logging.info("Collections deleted successfully")
         except Exception as e:
             logging.error(f"Error deleting collections: {e}")
