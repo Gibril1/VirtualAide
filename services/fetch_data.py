@@ -59,6 +59,10 @@ class MongoDBCrudService:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to add all records')
     
     def template_message_string_private(self, message, source, date, sender, receiver):
+        if sender == 'user':
+            sender = 'CEO'
+        elif receiver == 'user':
+            receiver = 'CEO'
         message = f"On {date}, {sender} sent a message with content '{message}' to {receiver} via {source}"
 
         return message
@@ -66,25 +70,32 @@ class MongoDBCrudService:
     async def add_records_to_database_private_messages(self, model):
         try:
             records = await self.find(model)
-            ids = [str(uuid.uuid4()) for _ in range(len(records['records']))]
+            length_of_records = len(records["records"])
+            ids = [str(uuid.uuid4()) for _ in range(length_of_records)]
             documents = []
 
             for record in records['records']:
-                message = self.template_message_string_private(
-                    message=record["message"],
-                    source=record["source"],
-                    date= record["date"],
-                    sender=record["sender"],
-                    receiver=record["receiver"]
-                )
-                documents.append(message)
-                logging.info(f'Chroma Docs: {message}')
+                source = record["source"]
+                if source != 'chrome':
+                    message_content = record["message"]
+                    sender = record["sender"]
+                    date = record["date"]
+                    receiver = record["receiver"]
+
+                
+
+
+
+                    message = self.template_message_string_private(message_content, source, date, sender, receiver)
+                    documents.append(message)
+                    logging.info(f'Chroma Docs: {message}')
                 
             
-            add_documents = chroma_service.add_documents(documents=documents, ids=ids)
-            logging.info(f"All documents have been added to chroma. {add_documents}")
-            return 1
+            # add_documents = chroma_service.add_documents(documents=documents, ids=ids)
+            # logging.info(f"All documents have been added to chroma. {add_documents}")
+            return len(documents)
         except Exception as e:
+            print(e)
             logging.error(f'Failed to add records to chroma. {e}')
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to add all records')
 
