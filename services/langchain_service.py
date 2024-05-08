@@ -5,9 +5,11 @@ from langchain_openai import ChatOpenAI
 from langchain.vectorstores.chroma import Chroma
 from config.chromadb import ChromaDb
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from langchain.prompts import PromptTemplate
+from langchain.prompts import ChatPromptTemplate
 
 chroma = ChromaDb()
 llm = ChatOpenAI(
@@ -20,40 +22,35 @@ db = Chroma(
     client=chroma.client,
     embedding_function=OpenAIEmbeddings(api_key=os.getenv('OPENAI_API_KEY'))
 )
+
+retriever = db.as_retriever()
+
 class LangChainService:
     def create_chain(self):
-        template = """
-        Use the following pieces of context to answer the question at the end.
-        If you don't know the answer, just say that you don't know, don't try to make up an answer.
-        Use three sentences maximum and keep the answer as concise as possible.
-        Always politely request if they would like to know more or anything else they want to know.
 
-        {context}
+        prompt = ChatPromptTemplate.from_template("""As the Executive Assistant to the CEO, your primary goal is to ensure clear and concise daily updates from team members, especially users (senders and receivers), for effective decision-making and task prioritization.
 
-        Question: {question}
-
-        Helpful Answer:
-        """
-
-        prompt = PromptTemplate(template)
-        retriever = db.as_retriever()
-
-        def format_docs(docs):
-            return "\n\n".join(doc.page_content for doc in docs)
-
-
-        rag_chain = (
-            {"context": retriever | format_docs, "question": RunnablePassthrough()}
-            | prompt
-            | llm
-            | StrOutputParser()
+    - Facilitate clear and concise daily updates from users.
+    - Foster open and effective communication channels with team members.
+    - Maintain visibility into project progress and task management. 
+                                                  
+        Context: {context}
+        Question: {input}
+    """)
+        
+        chain = create_stuff_documents_chain(
+            llm=llm,
+            prompt=prompt
         )
+        
+        retrieval_chain = create_retrieval_chain(retriever, chain)
 
-        return rag_chain
+        return retrieval_chain
     
     def chat_with_bot(self, prompt:str):
         chain = self.create_chain()
+        response = chain.invoke({
+            "input": prompt
+        })
 
-        response = chain.invoke(prompt)
-
-        return response
+        return response['context'][0].page_content

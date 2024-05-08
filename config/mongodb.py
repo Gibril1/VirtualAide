@@ -35,7 +35,7 @@ async def connect_to_database():
         return client[DATABASE_NAME]
     except Exception as e:
         # Log connection error
-        logging.error(f"Error connecting to the database: {e}🥲🥲🥲")
+        logging.error(f"Error connecting to the database: {str(e)}🥲🥲🥲")
         return None
 
 async def close_database_connection():
@@ -62,7 +62,7 @@ async def check_db_connection():
             return True
         except Exception as e:
             # Log error while listing collections
-            logging.error(f"Error listing collections: {e}")
+            logging.error(f"Error listing collections: {str(e)}")
             return False
     else:
         return False

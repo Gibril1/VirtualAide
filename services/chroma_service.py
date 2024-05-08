@@ -41,12 +41,20 @@ class ChromaDBCRUDService:
             logging.error(f"Error deleting collections: {e}")
             raise e
 
-    def add_documents(self, documents, metadatas, ids):
+    def add_documents(self, documents, ids):
         try:
             # Add documents to the default collection with metadata and unique IDs
-            new_docs = self.collection.add(documents=documents, metadatas=metadatas, ids=ids)
+            new_docs = self.collection.add(documents=documents, ids=ids)
             logging.info("Successfully added data to chromaDB")
             return new_docs
         except Exception as e:
             logging.error(f"Error adding data to chromaDB: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        
+    
+    def peek_collection(self):
+        try:
+            return self.collection.peek()
+        except Exception as e:
+            logging.error(f"Error peeping through the collection. {str(e)}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

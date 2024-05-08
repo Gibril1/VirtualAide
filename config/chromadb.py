@@ -6,6 +6,8 @@ from chromadb.utils import embedding_functions
 
 load_dotenv()
 
+# Init logging
+logging.basicConfig(level=logging.INFO)
 
 class ChromaDb():
     def __init__(self):
