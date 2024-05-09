@@ -76,24 +76,20 @@ class MongoDBCrudService:
 
             for record in records['records']:
                 source = record["source"]
-                if source != 'chrome':
-                    message_content = record["message"]
-                    sender = record["sender"]
-                    date = record["date"]
-                    receiver = record["receiver"]
+                message_content = record["message"]
+                sender = record["sender"]
+                date = record["date"]
+                receiver = record["receiver"]
 
                 
-
-
-
-                    message = self.template_message_string_private(message_content, source, date, sender, receiver)
-                    documents.append(message)
-                    logging.info(f'Chroma Docs: {message}')
+                message = self.template_message_string_private(message_content, source, date, sender, receiver)
+                documents.append(message)
+                logging.info(f'Chroma Docs: {message}')
                 
             
-            # add_documents = chroma_service.add_documents(documents=documents, ids=ids)
-            # logging.info(f"All documents have been added to chroma. {add_documents}")
-            return len(documents)
+            add_documents = chroma_service.add_documents(documents=documents, ids=ids)
+            logging.info(f"All documents have been added to chroma. {add_documents}")
+            return 1
         except Exception as e:
             print(e)
             logging.error(f'Failed to add records to chroma. {e}')

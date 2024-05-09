@@ -9,7 +9,8 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate, PromptTemplate
+from langchain.chains import RetrievalQA
 
 chroma = ChromaDb()
 llm = ChatOpenAI(
@@ -23,16 +24,11 @@ db = Chroma(
     embedding_function=OpenAIEmbeddings(api_key=os.getenv('OPENAI_API_KEY'))
 )
 
-retriever = db.as_retriever()
+retriever = db.as_retriever(search_type="similarity", search_kwargs={"k":1})
 
 class LangChainService:
     def create_chain(self):
-
-        prompt = ChatPromptTemplate.from_template("""As the Executive Assistant to the CEO, your primary goal is to ensure clear and concise daily updates from team members, especially users (senders and receivers), for effective decision-making and task prioritization.
-
-    - Facilitate clear and concise daily updates from users.
-    - Foster open and effective communication channels with team members.
-    - Maintain visibility into project progress and task management. 
+        prompt = ChatPromptTemplate.from_template(""" You are helpful Virtual Executive assistant. You have been provided with a context which holds conversations about team mates in a software engineering company. You are supposed to help them plan the task they have by taking updates from them and answering questions
                                                   
         Context: {context}
         Question: {input}
@@ -42,6 +38,8 @@ class LangChainService:
             llm=llm,
             prompt=prompt
         )
+
+        
         
         retrieval_chain = create_retrieval_chain(retriever, chain)
 
@@ -54,3 +52,7 @@ class LangChainService:
         })
 
         return response['context'][0].page_content
+
+
+    
+    
