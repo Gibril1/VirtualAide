@@ -72,9 +72,8 @@ class MongoDBCrudService:
             records = await self.find(model)
             length_of_records = len(records["records"])
             ids = [str(uuid.uuid4()) for _ in range(length_of_records)]
-            documents = []
 
-            for record in records['records']:
+            for index, record in enumerate(records['records']):
                 source = record["source"]
                 message_content = record["message"]
                 sender = record["sender"]
@@ -83,12 +82,11 @@ class MongoDBCrudService:
 
                 
                 message = self.template_message_string_private(message_content, source, date, sender, receiver)
-                documents.append(message)
                 logging.info(f'Chroma Docs: {message}')
                 
             
-            add_documents = chroma_service.add_documents(documents=documents, ids=ids)
-            logging.info(f"All documents have been added to chroma. {add_documents}")
+                add_documents = chroma_service.add_documents(documents=message, ids=ids[index])
+                logging.info(f"All documents have been added to chroma. {add_documents}")
             return 1
         except Exception as e:
             print(e)
